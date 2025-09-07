@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License a
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -108,6 +108,8 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.traccar.redis.RedisManager;
+import org.traccar.redis.RedisPositionManager;
 
 public class MainModule extends AbstractModule {
 
@@ -119,9 +121,14 @@ public class MainModule extends AbstractModule {
 
     @Override
     protected void configure() {
+
+
         bindConstant().annotatedWith(Names.named("configFile")).to(configFile);
         bind(Config.class).asEagerSingleton();
         bind(Timer.class).to(HashedWheelTimer.class).in(Scopes.SINGLETON);
+
+
+
     }
 
     @Singleton
@@ -129,6 +136,22 @@ public class MainModule extends AbstractModule {
     public static ExecutorService provideExecutorService() {
         return Executors.newCachedThreadPool();
     }
+
+    @Singleton
+    @Provides
+    public static RedisManager provideRedisManager(Config config) {
+        return new RedisManager(
+                config.getString(Keys.REDIS_HOST),
+                config.getInteger(Keys.REDIS_PORT)
+        );
+    }
+
+    @Singleton
+    @Provides
+    public static RedisPositionManager provideRedisPositionManager(RedisManager redisManager) {
+        return new RedisPositionManager(redisManager);
+    }
+
 
     @Singleton
     @Provides

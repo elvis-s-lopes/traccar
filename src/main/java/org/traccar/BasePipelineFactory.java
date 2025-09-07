@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License a
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -116,8 +116,10 @@ public abstract class BasePipelineFactory extends ChannelInitializer<Channel> {
         });
 
         pipeline.addLast(injector.getInstance(RemoteAddressHandler.class));
+        pipeline.addLast((io.netty.channel.ChannelHandler) injector.getInstance(org.traccar.redis.RedisHandler.class));
         pipeline.addLast(injector.getInstance(ProcessingHandler.class));
         pipeline.addLast(injector.getInstance(MainEventHandler.class));
+
     }
 
 }

@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * You may obtain a copy of the License a
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -68,6 +68,24 @@ public final class Keys {
     public static final ConfigSuffix<Integer> PROTOCOL_TIMEOUT = new IntegerConfigSuffix(
             ".timeout",
             List.of(KeyType.CONFIG));
+
+
+     /**
+     * Redis hostname.
+     */
+    public static final ConfigKey<String> REDIS_HOST = new StringConfigKey(
+            "redis.host",
+            List.of(KeyType.CONFIG),
+            "127.0.0.1");
+
+    /**
+     * Redis port.
+     */
+    public static final ConfigKey<Integer> REDIS_PORT = new IntegerConfigKey(
+            "redis.port",
+            List.of(KeyType.CONFIG),
+            6379);
+
 
     /**
      * Device password. Commonly used in some protocol for sending commands.
@@ -381,7 +399,7 @@ public final class Keys {
             List.of(KeyType.SERVER));
 
     /**
-     * Speed limit threshold multiplier. For example, if the speed limit is 100, but we only want to generate an event
+     * Speed limit threshold multiplier. For example, if the speed limit is 100, but we only want to generate an even
      * if the speed is higher than 105, this parameter can be set to 1.05. Default multiplier is 1.0.
      */
     public static final ConfigKey<Double> EVENT_OVERSPEED_THRESHOLD_MULTIPLIER = new DoubleConfigKey(
@@ -1608,7 +1626,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Enable copying of missing attributes from last position to the current one. Might be useful if device doesn't
+     * Enable copying of missing attributes from last position to the current one. Might be useful if device doesn'
      * send some values in every message.
      */
     public static final ConfigKey<Boolean> PROCESSING_COPY_ATTRIBUTES_ENABLE = new BooleanConfigKey(
@@ -2005,7 +2023,7 @@ public final class Keys {
             "time,position,speed,course,accuracy,result");
 
     /**
-     * Broadcast method. Available options are "multicast" and "redis". By default, (if the value is not
+     * Broadcast method. Available options are "multicast" and "redis". By default, (if the value is no
      * specified or does not match available options) server disables broadcast.
      */
     public static final ConfigKey<String> BROADCAST_TYPE = new StringConfigKey(
