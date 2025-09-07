@@ -8,7 +8,7 @@ public class RedisHandler {
 
     private final RedisPositionManager redisPositionManager;
 
-    @Injec
+    @Inject
     public RedisHandler(RedisPositionManager redisPositionManager) {
         this.redisPositionManager = redisPositionManager;
     }
