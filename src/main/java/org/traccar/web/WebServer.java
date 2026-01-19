@@ -20,6 +20,7 @@ import com.google.inject.servlet.GuiceFilter;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.compression.server.CompressionHandler;
 import org.eclipse.jetty.ee10.proxy.AsyncProxyServlet;
 import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ResourceServlet;
@@ -31,7 +32,6 @@ import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.RequestLogWriter;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.session.DatabaseAdaptor;
 import org.eclipse.jetty.session.DefaultSessionCache;
 import org.eclipse.jetty.session.JDBCSessionDataStoreFactory;
@@ -48,6 +48,7 @@ import org.traccar.api.DateParameterConverterProvider;
 import org.traccar.api.ResourceErrorHandler;
 import org.traccar.api.StreamWriter;
 import org.traccar.api.resource.ServerResource;
+import org.traccar.api.security.LoginService;
 import org.traccar.api.security.SecurityRequestFilter;
 import org.traccar.config.Config;
 import org.traccar.config.Keys;
@@ -68,7 +69,9 @@ public class WebServer implements LifecycleObject {
 
     private final Injector injector;
     private final Config config;
+
     private final Server server;
+    private McpServerHolder mcpServerHolder;
 
     public WebServer(Injector injector, Config config) throws IOException {
         this.injector = injector;
@@ -97,7 +100,7 @@ public class WebServer implements LifecycleObject {
         Handler.Sequence handlers = new Handler.Sequence();
         initClientProxy(servletHandler);
         handlers.addHandler(servletHandler);
-        handlers.addHandler(new GzipHandler());
+        handlers.addHandler(new CompressionHandler());
         server.setHandler(handlers);
 
         if (config.hasKey(Keys.WEB_REQUEST_LOG_PATH)) {
@@ -168,6 +171,16 @@ public class WebServer implements LifecycleObject {
             servletHandler.addServlet(servletHolder, "/api/media/*");
         }
 
+        if (config.getBoolean(Keys.WEB_MCP_ENABLE)) {
+            mcpServerHolder = injector.getInstance(McpServerHolder.class);
+            var mcpServletHolder = new ServletHolder(mcpServerHolder.getServlet());
+            mcpServletHolder.setAsyncSupported(true);
+            servletHandler.addServlet(mcpServletHolder, McpServerHolder.PATH);
+            servletHandler.addFilter(
+                    new FilterHolder(new McpAuthFilter(injector.getInstance(LoginService.class))),
+                    McpServerHolder.PATH + "/*", EnumSet.of(DispatcherType.REQUEST));
+        }
+
         ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.property("jersey.config.server.wadl.disableWadl", true);
         resourceConfig.registerClasses(
@@ -235,6 +248,9 @@ public class WebServer implements LifecycleObject {
     @Override
     public void stop() throws Exception {
         server.stop();
+        if (mcpServerHolder != null) {
+            mcpServerHolder.close();
+        }
     }
 
 }

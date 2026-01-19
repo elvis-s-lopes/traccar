@@ -302,6 +302,14 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
+     * Minimum accuracy to include. If the value is lower, it will be set to zero.
+     */
+    public static final ConfigKey<Double> OSMAND_MIN_ACCURACY = new DoubleConfigKey(
+            "osmand.minAccuracy",
+            List.of(KeyType.CONFIG),
+            10.0);
+
+    /**
      * Use alternative format for the protocol of commands.
      */
     public static final ConfigSuffix<Boolean> PROTOCOL_ALTERNATIVE = new BooleanConfigSuffix(
@@ -384,6 +392,13 @@ public final class Keys {
             0.0);
 
     /**
+     * Device fuel tank capacity in liters.
+     */
+    public static final ConfigKey<String> FUEL_CAPACITY = new StringConfigKey(
+            "fuelCapacity",
+            List.of(KeyType.DEVICE));
+
+    /**
      * Speed limit value in knots.
      */
     public static final ConfigKey<Double> EVENT_OVERSPEED_LIMIT = new DoubleConfigKey(
@@ -442,14 +457,6 @@ public final class Keys {
             "event.ignoreDuplicateAlerts",
             List.of(KeyType.CONFIG),
             true);
-
-    /**
-     * If set to true, invalid positions will be considered for motion logic.
-     */
-    public static final ConfigKey<Boolean> EVENT_MOTION_PROCESS_INVALID_POSITIONS = new BooleanConfigKey(
-            "event.motion.processInvalidPositions",
-            List.of(KeyType.CONFIG, KeyType.DEVICE),
-            false);
 
     /**
      * If the speed is above specified value, the object is considered to be in motion. Default value is 0.01 knots.
@@ -671,6 +678,14 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
+     * List of OpenID Connect clients for the built-in provider.
+     * Value should be a comma-separated list of 'clientId:clientSecret' pairs.
+     */
+    public static final ConfigKey<String> OPENID_CLIENTS = new StringConfigKey(
+            "openid.clients",
+            List.of(KeyType.CONFIG));
+
+    /**
      * Force OpenID Connect authentication. When enabled, the Traccar login page will be skipped
      * and users are redirected to the OpenID Connect provider.
      */
@@ -800,21 +815,6 @@ public final class Keys {
             "web.port",
             List.of(KeyType.CONFIG),
             8082);
-
-    /**
-     * Maximum API requests per second. Above this limit requests and delayed and throttled.
-     */
-    public static final ConfigKey<Integer> WEB_MAX_REQUESTS_PER_SECOND = new IntegerConfigKey(
-            "web.maxRequestsPerSec",
-            List.of(KeyType.CONFIG));
-
-    /**
-     * Maximum API request duration in seconds.
-     */
-    public static final ConfigKey<Integer> WEB_MAX_REQUEST_SECONDS = new IntegerConfigKey(
-            "web.maxRequestSec",
-            List.of(KeyType.CONFIG),
-            600);
 
     /**
      * Path to the web app folder.
@@ -1604,8 +1604,7 @@ public final class Keys {
             List.of(KeyType.CONFIG));
 
     /**
-     * Distance in meters. Distances above this value gets handled like explained in 'coordinates.filter', but only if
-     * Position is also marked as 'invalid'.
+     * Distance in meters. Distances above this value gets handled like explained in 'coordinates.filter'.
      */
     public static final ConfigKey<Integer> COORDINATES_MAX_ERROR = new IntegerConfigKey(
             "coordinates.maxError",
@@ -1736,13 +1735,6 @@ public final class Keys {
             "geocoder.ignorePositions",
             List.of(KeyType.CONFIG),
             true);
-
-    /**
-     * Boolean flag to apply reverse geocoding to invalid positions.
-     */
-    public static final ConfigKey<Boolean> GEOCODER_PROCESS_INVALID_POSITIONS = new BooleanConfigKey(
-            "geocoder.processInvalidPositions",
-            List.of(KeyType.CONFIG));
 
     /**
      * Optional parameter to specify minimum distance for new reverse geocoding request. If distance is less than
@@ -1947,6 +1939,13 @@ public final class Keys {
      */
     public static final ConfigKey<Boolean> WEB_SHARE_DEVICE_REPORTS = new BooleanConfigKey(
             "web.shareDevice.reports",
+            List.of(KeyType.CONFIG));
+
+    /**
+     * Enable MCP service.
+     */
+    public static final ConfigKey<Boolean> WEB_MCP_ENABLE = new BooleanConfigKey(
+            "web.mcp.enable",
             List.of(KeyType.CONFIG));
 
     /**
