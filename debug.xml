@@ -32,6 +32,8 @@
     <entry key='atrack.custom'>true</entry>
     <entry key='intellitrac.port'>6037</entry>
     <entry key='osmand.port'>5055</entry>
+    <entry key='gps103.port'>5001</entry>
+    <entry key='gt06.port'>5023</entry>
 
     <entry key='redis.enable'>true</entry>
     <entry key='redis.host'>127.0.0.1</entry>

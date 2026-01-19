@@ -13,10 +13,10 @@ public class RedisManager {
 
     public RedisManager(String host, int port) {
         this.pool = new JedisPool(host, port);
-        
+
         clearOldConnections();
     }
-    
+
     private void clearOldConnections() {
         try (Jedis jedis = pool.getResource()) {
             for (String key : jedis.keys("connected.*")) {
@@ -30,7 +30,7 @@ public class RedisManager {
         Date deviceTime = position.getDeviceTime();
         Date fixTime = position.getFixTime();
         long time = 0L;
-        
+
         if (time == 0L && fixTime != null) {
             time = fixTime.getTime();
         }
@@ -40,29 +40,29 @@ public class RedisManager {
         if (time == 0L) {
             time = System.currentTimeMillis();
         }
-        
+
         String key = "positions." + uniqueId;
         String value = objectMapper.writeValueAsString(position);
-        
+
         try (Jedis jedis = pool.getResource()) {
             jedis.lpush(key, value);
         }
     }
-    
+
     public void addDevice(Device device) {
         try (Jedis jedis = pool.getResource()) {
             jedis.setnx("connected." + device.getUniqueId(), String.valueOf(new Date().getTime()));
         } catch (Exception e) {
         }
     }
-    
+
     public void removeDevice(Device device) {
         try (Jedis jedis = pool.getResource()) {
             jedis.del("connected." + device.getUniqueId());
         } catch (Exception e) {
         }
     }
-    
+
     public void close() {
         if (pool != null) {
             pool.close();

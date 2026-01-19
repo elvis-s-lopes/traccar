@@ -27,7 +27,6 @@ import org.traccar.database.NotificationManager;
 import org.traccar.handler.BasePositionHandler;
 import org.traccar.handler.ComputedAttributesHandler;
 import org.traccar.handler.CopyAttributesHandler;
-import org.traccar.handler.DatabaseHandler;
 import org.traccar.handler.DistanceHandler;
 import org.traccar.handler.DriverHandler;
 import org.traccar.handler.EngineHoursHandler;
@@ -87,13 +86,12 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
         return queues.computeIfAbsent(deviceId, k -> new LinkedList<>());
     }
 
-    
-
     @Inject
     public ProcessingHandler(
             Injector injector, Config config,
-            CacheManager cacheManager, NotificationManager notificationManager, PositionLogger positionLogger, RedisHandler redisHandler) {
-        
+            CacheManager cacheManager, NotificationManager notificationManager, PositionLogger positionLogger,
+            RedisHandler redisHandler) {
+
         System.out.println("DEBUG: ProcessingHandler construtor - RedisHandler é null? " + (redisHandler == null));
         this.cacheManager = cacheManager;
         this.notificationManager = notificationManager;
@@ -155,13 +153,10 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
     @Override
     public void onReleased(ChannelHandlerContext context, Position position) {
 
-       
         if (redisHandler != null) {
             System.out.println("DEBUG: Chamando redisHandler.handle()");
             redisHandler.handle(position, null);
-
         }
-
 
         Queue<Position> queue = getQueue(position.getDeviceId());
         boolean queued;

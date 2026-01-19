@@ -159,7 +159,7 @@ public class ConnectionManager implements BroadcastInterface {
 
             if (oldSession == null) {
                 cacheManager.addDevice(device.getId(), connectionKey);
-                
+
                 // Registrar device no Redis
                 if (redisHandler != null) {
                     redisHandler.addDevice(device);
@@ -208,7 +208,7 @@ public class ConnectionManager implements BroadcastInterface {
                     }
                     sessionsByDeviceId.remove(deviceSession.getDeviceId());
                     cacheManager.removeDevice(deviceSession.getDeviceId(), connectionKey);
-                    
+
                     if (redisHandler != null) {
                         Device device = cacheManager.getObject(Device.class, deviceSession.getDeviceId());
                         if (device != null) {
@@ -235,7 +235,7 @@ public class ConnectionManager implements BroadcastInterface {
                 sessions.remove(deviceSession.getUniqueId());
                 return sessions.isEmpty() ? null : sessions;
             });
-            
+
             if (redisHandler != null) {
                 Device device = cacheManager.getObject(Device.class, deviceId);
                 if (device != null) {

@@ -162,13 +162,13 @@ public class MainModule extends AbstractModule {
 
     @Singleton
     @Provides
-    public static RedisHandler provideRedisHandler(@Nullable RedisPositionManager redisPositionManager, CacheManager cacheManager) {
+    public static RedisHandler provideRedisHandler(@Nullable RedisPositionManager redisPositionManager,
+            CacheManager cacheManager) {
         if (redisPositionManager != null) {
             return new RedisHandler(redisPositionManager, cacheManager);
         }
         return null;
     }
-    
 
     @Singleton
     @Provides

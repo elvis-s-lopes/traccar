@@ -19,14 +19,14 @@ public class RedisPositionManager {
             e.printStackTrace();
         }
     }
-    
+
     public void addDevice(Device device) {
         try {
             redisManager.addDevice(device);
         } catch (Exception e) {
         }
     }
-    
+
     public void removeDevice(Device device) {
         try {
             redisManager.removeDevice(device);
