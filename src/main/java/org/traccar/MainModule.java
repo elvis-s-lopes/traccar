@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License a
+ * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -99,6 +99,10 @@ import org.traccar.storage.Storage;
 import org.traccar.web.WebServer;
 import org.traccar.api.security.LoginService;
 
+import org.traccar.redis.RedisManager;
+import org.traccar.redis.RedisPositionManager;
+import org.traccar.redis.RedisHandler;
+
 import jakarta.annotation.Nullable;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.client.Client;
@@ -108,8 +112,6 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.traccar.redis.RedisManager;
-import org.traccar.redis.RedisPositionManager;
 
 public class MainModule extends AbstractModule {
 
@@ -121,14 +123,9 @@ public class MainModule extends AbstractModule {
 
     @Override
     protected void configure() {
-
-
         bindConstant().annotatedWith(Names.named("configFile")).to(configFile);
         bind(Config.class).asEagerSingleton();
         bind(Timer.class).to(HashedWheelTimer.class).in(Scopes.SINGLETON);
-
-
-
     }
 
     @Singleton
@@ -140,18 +137,37 @@ public class MainModule extends AbstractModule {
     @Singleton
     @Provides
     public static RedisManager provideRedisManager(Config config) {
-        return new RedisManager(
-                config.getString(Keys.REDIS_HOST),
-                config.getInteger(Keys.REDIS_PORT)
-        );
+        System.out.println("DEBUG: Verificando se redis.host existe: " + config.hasKey(Keys.REDIS_HOST));
+        if (config.hasKey(Keys.REDIS_HOST)) {
+            String host = config.getString(Keys.REDIS_HOST);
+            int port = config.getInteger(Keys.REDIS_PORT);
+            System.out.println("DEBUG: Criando RedisManager para " + host + ":" + port);
+            return new RedisManager(host, port);
+        }
+        System.out.println("DEBUG: RedisManager não criado - redis.host não configurado");
+        return null;
     }
 
     @Singleton
     @Provides
-    public static RedisPositionManager provideRedisPositionManager(RedisManager redisManager) {
-        return new RedisPositionManager(redisManager);
+    public static RedisPositionManager provideRedisPositionManager(@Nullable RedisManager redisManager) {
+        System.out.println("DEBUG: RedisManager é null? " + (redisManager == null));
+        if (redisManager != null) {
+            System.out.println("DEBUG: Criando RedisPositionManager");
+            return new RedisPositionManager(redisManager);
+        }
+        return null;
     }
 
+    @Singleton
+    @Provides
+    public static RedisHandler provideRedisHandler(@Nullable RedisPositionManager redisPositionManager, CacheManager cacheManager) {
+        if (redisPositionManager != null) {
+            return new RedisHandler(redisPositionManager, cacheManager);
+        }
+        return null;
+    }
+    
 
     @Singleton
     @Provides
@@ -405,5 +421,4 @@ public class MainModule extends AbstractModule {
         velocityEngine.init(properties);
         return velocityEngine;
     }
-
 }

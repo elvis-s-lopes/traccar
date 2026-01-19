@@ -57,6 +57,7 @@ import org.traccar.handler.events.OverspeedEventHandler;
 import org.traccar.handler.network.AcknowledgementHandler;
 import org.traccar.helper.PositionLogger;
 import org.traccar.model.Position;
+import org.traccar.redis.RedisHandler;
 import org.traccar.session.cache.CacheManager;
 
 import java.util.HashMap;
@@ -78,6 +79,7 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
     private final List<BasePositionHandler> positionHandlers;
     private final List<BaseEventHandler> eventHandlers;
     private final PostProcessHandler postProcessHandler;
+    private final RedisHandler redisHandler;
 
     private final Map<Long, Queue<Position>> queues = new HashMap<>();
 
@@ -85,13 +87,18 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
         return queues.computeIfAbsent(deviceId, k -> new LinkedList<>());
     }
 
+    
+
     @Inject
     public ProcessingHandler(
             Injector injector, Config config,
-            CacheManager cacheManager, NotificationManager notificationManager, PositionLogger positionLogger) {
+            CacheManager cacheManager, NotificationManager notificationManager, PositionLogger positionLogger, RedisHandler redisHandler) {
+        
+        System.out.println("DEBUG: ProcessingHandler construtor - RedisHandler é null? " + (redisHandler == null));
         this.cacheManager = cacheManager;
         this.notificationManager = notificationManager;
         this.positionLogger = positionLogger;
+        this.redisHandler = redisHandler;
         bufferingManager = new BufferingManager(config, this);
 
         positionHandlers = Stream.of(
@@ -110,8 +117,8 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
                 DriverHandler.class,
                 CopyAttributesHandler.class,
                 EngineHoursHandler.class,
-                PositionForwardingHandler.class,
-                DatabaseHandler.class)
+                PositionForwardingHandler.class
+                )
                 .map((clazz) -> (BasePositionHandler) injector.getInstance(clazz))
                 .filter(Objects::nonNull)
                 .toList();
@@ -147,6 +154,15 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
 
     @Override
     public void onReleased(ChannelHandlerContext context, Position position) {
+
+       
+        if (redisHandler != null) {
+            System.out.println("DEBUG: Chamando redisHandler.handle()");
+            redisHandler.handle(position, null);
+
+        }
+
+
         Queue<Position> queue = getQueue(position.getDeviceId());
         boolean queued;
         synchronized (queue) {
@@ -214,5 +230,4 @@ public class ProcessingHandler extends ChannelInboundHandlerAdapter implements B
             processPositionHandlers(ctx, nextPosition);
         }
     }
-
 }

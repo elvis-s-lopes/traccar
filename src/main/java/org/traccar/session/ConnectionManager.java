@@ -39,9 +39,11 @@ import org.traccar.storage.StorageException;
 import org.traccar.storage.query.Columns;
 import org.traccar.storage.query.Condition;
 import org.traccar.storage.query.Request;
+import org.traccar.redis.RedisHandler;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.annotation.Nullable;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Arrays;
@@ -76,6 +78,7 @@ public class ConnectionManager implements BroadcastInterface {
     private final Timer timer;
     private final BroadcastService broadcastService;
     private final DeviceLookupService deviceLookupService;
+    private final RedisHandler redisHandler;
 
     private final Map<Long, Set<UpdateListener>> listeners = new HashMap<>();
     private final Map<Long, Set<Long>> userDevices = new HashMap<>();
@@ -87,7 +90,7 @@ public class ConnectionManager implements BroadcastInterface {
     public ConnectionManager(
             Config config, CacheManager cacheManager, Storage storage,
             NotificationManager notificationManager, Timer timer, BroadcastService broadcastService,
-            DeviceLookupService deviceLookupService) {
+            DeviceLookupService deviceLookupService, @Nullable RedisHandler redisHandler) {
         this.config = config;
         this.cacheManager = cacheManager;
         this.storage = storage;
@@ -95,6 +98,7 @@ public class ConnectionManager implements BroadcastInterface {
         this.timer = timer;
         this.broadcastService = broadcastService;
         this.deviceLookupService = deviceLookupService;
+        this.redisHandler = redisHandler;
         deviceTimeout = config.getLong(Keys.STATUS_TIMEOUT);
         showUnknownDevices = config.getBoolean(Keys.WEB_SHOW_UNKNOWN_DEVICES);
         broadcastService.registerListener(this);
@@ -155,6 +159,11 @@ public class ConnectionManager implements BroadcastInterface {
 
             if (oldSession == null) {
                 cacheManager.addDevice(device.getId(), connectionKey);
+                
+                // Registrar device no Redis
+                if (redisHandler != null) {
+                    redisHandler.addDevice(device);
+                }
             }
 
             return deviceSession;
@@ -199,6 +208,13 @@ public class ConnectionManager implements BroadcastInterface {
                     }
                     sessionsByDeviceId.remove(deviceSession.getDeviceId());
                     cacheManager.removeDevice(deviceSession.getDeviceId(), connectionKey);
+                    
+                    if (redisHandler != null) {
+                        Device device = cacheManager.getObject(Device.class, deviceSession.getDeviceId());
+                        if (device != null) {
+                            redisHandler.removeDevice(device);
+                        }
+                    }
                 }
             }
             unknownByEndpoint.remove(connectionKey);
@@ -219,6 +235,13 @@ public class ConnectionManager implements BroadcastInterface {
                 sessions.remove(deviceSession.getUniqueId());
                 return sessions.isEmpty() ? null : sessions;
             });
+            
+            if (redisHandler != null) {
+                Device device = cacheManager.getObject(Device.class, deviceId);
+                if (device != null) {
+                    redisHandler.removeDevice(device);
+                }
+            }
         }
     }
 
@@ -397,5 +420,4 @@ public class ConnectionManager implements BroadcastInterface {
             }));
         }
     }
-
 }
