@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traccar
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ns2.nova-gps.com.br
+spec:
+  selector:
+    app: traccar
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-8081
+      protocol: TCP
+      port: 8082
+      targetPort: 8082
+    - name: tcp-9018
+      protocol: TCP
+      port: 9018
+      targetPort: 9018

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traccar
+  labels:
+    app: traccar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traccar
+  template:
+    metadata:
+      labels:
+        app: traccar
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: ns2.nova-gps.com.br
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: traccar
+        image: elvislopes/traccar:latest
+        imagePullPolicy: Always
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          # aumenta limite de FDs
+          ulimit -n 1048576
+          # aumenta limites do inotify (precisa privileged + SYS_ADMIN)
+          sysctl -w fs.inotify.max_user_watches=524288
+          sysctl -w fs.inotify.max_user_instances=512
+          # executa Traccar
+          exec java -Djava.net.preferIPv6Addresses=false \
+            -jar tracker-server.jar conf/traccar.xml
+        ports:
+        - containerPort: 8082
+          protocol: TCP
+        - containerPort: 9018
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 20m
+            memory: 256Mi
+          limits:
+            cpu: 100m
+            memory: 512Mi
+        securityContext:
+          privileged: true
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - SYS_ADMIN

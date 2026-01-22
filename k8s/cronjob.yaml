@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: restart-traccar
+  namespace: default
+spec:
+  schedule: "0 */8 * * *"  # A cada 8 horas
+  successfulJobsHistoryLimit: 1  # Mantém apenas o último job bem-sucedido
+  failedJobsHistoryLimit: 1       # Mantém apenas o último job falhado
+  jobTemplate:
+    spec:
+      backoffLimit: 2  # Tenta no máximo 2 vezes antes de marcar como falho
+      activeDeadlineSeconds: 120  # Mata o job se não completar em 2 minutos
+      ttlSecondsAfterFinished: 300  # Deleta o job 5 minutos após finalizar
+      template:
+        spec:
+          serviceAccountName: deployment-restart-sa
+          containers:
+            - name: kubectl
+              image: rancher/kubectl:v1.31.2
+              imagePullPolicy: IfNotPresent
+              command:
+                - kubectl
+                - rollout
+                - restart
+                - deployment/traccar
+                - -n
+                - default
+          restartPolicy: OnFailure
